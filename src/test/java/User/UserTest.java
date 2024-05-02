@@ -10,8 +10,7 @@ import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 import org.junit.jupiter.api.*;
 
-import static io.restassured.RestAssured.given;
-import static io.restassured.RestAssured.requestSpecification;
+import static io.restassured.RestAssured.*;
 import static io.restassured.config.LogConfig.logConfig;
 import static io.restassured.module.jsv.JsonSchemaValidator.*;
 import static org.hamcrest.Matchers.*;
@@ -45,7 +44,7 @@ public class UserTest {
     }
 
     @Test
-    public void CreateNewUser_WithValidData_ReturnOK(){
+    public void CreateNewUser_WithValidData_ReturnOk(){
         requestSpecification
                 .body(user)
                 .when()
@@ -57,4 +56,22 @@ public class UserTest {
                 .body("message", isA(String.class))
                 .body("size()", equalTo(3));
     }
+
+    @Test
+    public void GetLogin_ValidUser_ReturnOk(){
+        requestSpecification
+                .param("username", user.getUsername())
+                .param("password", user.getPassword())
+                .when()
+                .get("/user/login")
+                .then()
+                .assertThat()
+                .statusCode(200)
+                .and()
+                .time(lessThan(2000L))
+                .and()
+                .body(matchesJsonSchemaInClasspath("loginResponseSchema.json"));
+
+    }
+
 }
