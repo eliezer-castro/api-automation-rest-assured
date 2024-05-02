@@ -3,19 +3,19 @@ package Entites;
 public class User {
 
     private String username;
-    private String fistName;
+    private String firstName;
     private String lastName;
     private String email;
     private String password;
     private String phone;
 
 
-    public User(String phone, String password, String email, String lastName, String fistName, String username) {
+    public User(String phone, String password, String email, String lastName, String firstName, String username) {
         this.phone = phone;
         this.password = password;
         this.email = email;
         this.lastName = lastName;
-        this.fistName = fistName;
+        this.firstName = firstName;
         this.username = username;
     }
 
@@ -37,8 +37,8 @@ public class User {
         return lastName;
     }
 
-    public String getFistName() {
-        return fistName;
+    public String getFirstName() {
+        return firstName;
     }
 
     public String getUsername() {
@@ -63,8 +63,8 @@ public class User {
         this.lastName = lastName;
     }
 
-    public void setFistName(String fistName) {
-        this.fistName = fistName;
+    public void setFirstName(String fistName) {
+        this.firstName = fistName;
     }
 
     public void setUsername(String username) {

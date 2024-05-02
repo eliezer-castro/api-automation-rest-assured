@@ -2,9 +2,6 @@ package User;
 import Entites.User;
 import com.github.javafaker.Faker;
 import io.restassured.RestAssured;
-import io.restassured.filter.log.ErrorLoggingFilter;
-import io.restassured.filter.log.RequestLoggingFilter;
-import io.restassured.filter.log.ResponseLoggingFilter;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
@@ -21,6 +18,9 @@ public class UserTest {
     private static User user;
 
     public static Faker faker;
+
+    public static RequestSpecification request;
+
 
     @BeforeAll
     public static void setup(){
@@ -39,13 +39,15 @@ public class UserTest {
     }
     @BeforeEach
     void setRequest(){
-        requestSpecification = given().header("api-key", "special-key")
+        request = given().config(RestAssured.config().logConfig(logConfig().enableLoggingOfRequestAndResponseIfValidationFails()))
+                .header("api-key", "special-key")
                 .contentType(ContentType.JSON);
     }
 
     @Test
+    @Order(1)
     public void CreateNewUser_WithValidData_ReturnOk(){
-        requestSpecification
+        request
                 .body(user)
                 .when()
                 .post("/user")
@@ -58,8 +60,9 @@ public class UserTest {
     }
 
     @Test
+    @Order(2)
     public void GetLogin_ValidUser_ReturnOk(){
-        requestSpecification
+        request
                 .param("username", user.getUsername())
                 .param("password", user.getPassword())
                 .when()
@@ -74,4 +77,41 @@ public class UserTest {
 
     }
 
+    @Test
+    @Order(3)
+    public void GetUserByUsername_userIsValid_returnOk(){
+        request
+                .when()
+                .get("/user/" + user.getUsername())
+                .then()
+                .assertThat().statusCode(200).and().time(lessThan(2000L))
+                .and().body("firstName", equalTo(user.getFirstName()));
+    }
+
+    @Test
+    @Order(4)
+    public void DeleteUser_UserExists_ReturnOK(){
+        request
+                .when()
+                .delete("/user/" + user.getUsername())
+                .then()
+                .assertThat().statusCode(200).and().time(lessThan(2000L))
+                .log();
+    }
+
+    @Test
+    public void CreateNewUser_WithInvalidBody_ReturnBadRequest() {
+
+        Response response = request
+                .body("test")
+                .when()
+                .post("/user")
+                .then()
+                .extract().response();
+
+        Assertions.assertNotNull(response);
+        Assertions.assertEquals(400, response.statusCode());
+        Assertions.assertTrue(response.getBody().asPrettyString().contains("unknown"));
+        Assertions.assertEquals(3, response.body().jsonPath().getMap("$").size());
+    }
 }
